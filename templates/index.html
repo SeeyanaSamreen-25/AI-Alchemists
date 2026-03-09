@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}StyleSense – Your AI Fashion Stylist{% endblock %}
+{% block body %}
+
+<div class="landing">
+
+  <!-- NAV -->
+  <nav class="landing-nav">
+    <div class="nav-logo">
+      <span class="logo-icon">✦</span>
+      <span>StyleSense</span>
+    </div>
+    <div class="nav-links">
+      <a href="/login" class="btn-ghost">Sign In</a>
+      <a href="/signup" class="btn-primary">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+      <div class="grain"></div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-tag">✦ Powered by Generative AI</div>
+      <h1 class="hero-title">
+        Your Personal<br/>
+        <em>AI Fashion</em><br/>
+        Stylist
+      </h1>
+      <p class="hero-sub">Discover outfits curated to your unique taste. Get intelligent styling advice, trend insights, and personalized recommendations — all powered by AI.</p>
+      <div class="hero-actions">
+        <a href="/signup" class="btn-primary btn-lg">Start Styling Free</a>
+        <a href="/login" class="btn-outline btn-lg">Sign In</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><span class="stat-num">50K+</span><span class="stat-label">Outfits Generated</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><span class="stat-num">5</span><span class="stat-label">Style Categories</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><span class="stat-num">Real-time</span><span class="stat-label">Trend Insights</span></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="style-card style-card-1">
+        <div class="sc-label">Trending Now</div>
+        <div class="sc-title">Quiet Luxury</div>
+        <div class="sc-tags"><span>Minimal</span><span>Premium</span><span>Timeless</span></div>
+      </div>
+      <div class="style-card style-card-2">
+        <div class="sc-label">AI Suggestion</div>
+        <div class="sc-title">Power Suit</div>
+        <div class="sc-tags"><span>Formal</span><span>Bold</span></div>
+      </div>
+      <div class="style-card style-card-3">
+        <div class="sc-label">Color Palette</div>
+        <div class="palette">
+          <div class="swatch" style="background:#D4A57A"></div>
+          <div class="swatch" style="background:#2C2C2C"></div>
+          <div class="swatch" style="background:#F0EAE0"></div>
+          <div class="swatch" style="background:#8B6F47"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <div class="section-header">
+      <div class="section-tag">What We Offer</div>
+      <h2>Fashion Intelligence<br/><em>at Your Fingertips</em></h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">◈</div>
+        <h3>AI Recommendations</h3>
+        <p>Describe your occasion and preferences — get a complete outfit curated by our AI engine instantly.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">◉</div>
+        <h3>Trend Insights</h3>
+        <p>Stay ahead with real-time fashion trend analysis across seasons, styles, and aesthetics.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">◇</div>
+        <h3>Style Profiles</h3>
+        <p>Build your personal style DNA. The more you use StyleSense, the smarter it gets about you.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">◎</div>
+        <h3>Save & Organize</h3>
+        <p>Save your favorite looks, build outfit collections, and access them anywhere, anytime.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="landing-footer">
+    <div class="footer-logo">✦ StyleSense</div>
+    <p>Your AI-powered personal stylist</p>
+    <div class="footer-links">
+      <a href="/signup">Get Started</a>
+      <a href="/login">Sign In</a>
+    </div>
+  </footer>
+
+</div>
+
+{% endblock %}

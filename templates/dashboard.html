@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – StyleSense{% endblock %}
+{% block body %}
+
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">✦ StyleSense</div>
+    <nav class="sidebar-nav">
+      <a href="/dashboard" class="nav-item active">
+        <span class="nav-icon">⬡</span><span>Dashboard</span>
+      </a>
+      <a href="/recommend" class="nav-item">
+        <span class="nav-icon">✦</span><span>Get Outfit</span>
+      </a>
+      <a href="/trends" class="nav-item">
+        <span class="nav-icon">◈</span><span>Trends</span>
+      </a>
+      <a href="/profile" class="nav-item">
+        <span class="nav-icon">◎</span><span>Profile</span>
+      </a>
+    </nav>
+    <a href="/logout" class="sidebar-logout">↩ Logout</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="app-main">
+    <header class="app-header">
+      <div>
+        <h1>Good {{ 'Evening' if (now().hour if now is defined else 18) >= 17 else 'Afternoon' if (now().hour if now is defined else 14) >= 12 else 'Morning' }}, <em>{{ user.name.split()[0] }}</em> ✦</h1>
+        <p>Here's your style overview for today</p>
+      </div>
+      <a href="/recommend" class="btn-primary">Get Outfit →</a>
+    </header>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="sc-num">{{ rec_count }}</div>
+        <div class="sc-label">Outfits Generated</div>
+        <div class="sc-bar"><div style="width:{{ [rec_count * 10, 100] | min }}%"></div></div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-num">{{ saved_count }}</div>
+        <div class="sc-label">Saved Looks</div>
+        <div class="sc-bar"><div style="width:{{ [saved_count * 20, 100] | min }}%"></div></div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-num">6</div>
+        <div class="sc-label">Trending Styles</div>
+        <div class="sc-bar"><div style="width:60%"></div></div>
+      </div>
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="section-title">Quick Actions</div>
+    <div class="quick-actions">
+      <a href="/recommend" class="qa-card qa-primary">
+        <div class="qa-icon">✦</div>
+        <div class="qa-text">
+          <strong>AI Outfit Builder</strong>
+          <span>Describe your occasion and get a perfect look</span>
+        </div>
+        <div class="qa-arrow">→</div>
+      </a>
+      <a href="/trends" class="qa-card">
+        <div class="qa-icon">◈</div>
+        <div class="qa-text">
+          <strong>Browse Trends</strong>
+          <span>See what's hot this season</span>
+        </div>
+        <div class="qa-arrow">→</div>
+      </a>
+      <a href="/profile" class="qa-card">
+        <div class="qa-icon">◎</div>
+        <div class="qa-text">
+          <strong>Style Profile</strong>
+          <span>Update your fashion preferences</span>
+        </div>
+        <div class="qa-arrow">→</div>
+      </a>
+    </div>
+
+    <!-- RECENT ACTIVITY -->
+    <div class="section-title">Recent Recommendations</div>
+    <div class="recent-list">
+      {% if recent %}
+        {% for r in recent %}
+        <div class="recent-item">
+          <div class="ri-dot"></div>
+          <div class="ri-content">
+            <div class="ri-prompt">{{ r.prompt[:70] }}{% if r.prompt|length > 70 %}…{% endif %}</div>
+            <div class="ri-meta">
+              <span class="ri-cat">{{ r.category.capitalize() }}</span>
+              <span>{{ r.created_at[:10] }}</span>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <div class="es-icon">✦</div>
+          <p>No recommendations yet.</p>
+          <a href="/recommend" class="btn-primary">Get Your First Look</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- TRENDING PREVIEW -->
+    <div class="section-title">Trending Now</div>
+    <div class="trend-preview">
+      <div class="tp-card">
+        <div class="tp-badge">🔥 Hot</div>
+        <div class="tp-name">Quiet Luxury</div>
+        <div class="tp-desc">Understated elegance with premium fabrics</div>
+        <div class="tp-bar"><div style="width:95%"></div></div>
+        <span class="tp-pct">95% Popularity</span>
+      </div>
+      <div class="tp-card">
+        <div class="tp-badge">✨ Rising</div>
+        <div class="tp-name">Y2K Revival</div>
+        <div class="tp-desc">Low-rise silhouettes and metallic fabrics</div>
+        <div class="tp-bar"><div style="width:88%"></div></div>
+        <span class="tp-pct">88% Popularity</span>
+      </div>
+      <div class="tp-card">
+        <div class="tp-badge">🌊 Coastal</div>
+        <div class="tp-name">Coastal Grandma</div>
+        <div class="tp-desc">Linen, flowing fabrics, nautical palette</div>
+        <div class="tp-bar"><div style="width:82%"></div></div>
+        <span class="tp-pct">82% Popularity</span>
+      </div>
+    </div>
+  </main>
+</div>
+
+{% endblock %}

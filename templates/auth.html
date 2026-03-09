@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == 'login' %}Sign In{% else %}Create Account{% endif %} – StyleSense{% endblock %}
+{% block body %}
+
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="auth-left-content">
+      <a href="/" class="auth-logo">✦ StyleSense</a>
+      <h2>Fashion meets<br/><em>Intelligence</em></h2>
+      <p>Your personal AI stylist, available 24/7. Get curated outfits, trend insights, and personalized style advice.</p>
+      <div class="auth-features">
+        <div class="af-item"><span class="af-icon">✦</span> AI-powered outfit curation</div>
+        <div class="af-item"><span class="af-icon">✦</span> Real-time trend analysis</div>
+        <div class="af-item"><span class="af-icon">✦</span> Personalized style profiles</div>
+        <div class="af-item"><span class="af-icon">✦</span> Save your favorite looks</div>
+      </div>
+    </div>
+    <div class="auth-orb"></div>
+  </div>
+
+  <div class="auth-right">
+    <div class="auth-form-wrap">
+      <div class="form-toggle">
+        <a href="/login" class="{% if mode == 'login' %}active{% endif %}">Sign In</a>
+        <a href="/signup" class="{% if mode == 'signup' %}active{% endif %}">Create Account</a>
+      </div>
+
+      <div id="errorMsg" class="error-banner" style="display:none"></div>
+      <div id="successMsg" class="success-banner" style="display:none"></div>
+
+      {% if mode == 'login' %}
+      <!-- LOGIN FORM -->
+      <form id="loginForm" class="auth-form">
+        <h3>Welcome back</h3>
+        <p class="form-sub">Sign in to your StyleSense account</p>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com" required />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-wrap">
+            <input type="password" id="loginPassword" placeholder="Your password" required />
+            <button type="button" class="toggle-pass" onclick="togglePassword('loginPassword', this)">Show</button>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary btn-full" id="loginBtn">
+          <span class="btn-text">Sign In</span>
+          <span class="btn-loader" style="display:none">●●●</span>
+        </button>
+        <p class="form-footer">Don't have an account? <a href="/signup">Sign up free</a></p>
+      </form>
+
+      {% else %}
+      <!-- SIGNUP FORM -->
+      <form id="signupForm" class="auth-form">
+        <h3>Create your account</h3>
+        <p class="form-sub">Start your personalized style journey</p>
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="signupName" placeholder="Your name" required />
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="signupEmail" placeholder="you@example.com" required />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-wrap">
+            <input type="password" id="signupPassword" placeholder="Min. 6 characters" required />
+            <button type="button" class="toggle-pass" onclick="togglePassword('signupPassword', this)">Show</button>
+          </div>
+          <div class="password-strength" id="pwStrength"></div>
+        </div>
+        <button type="submit" class="btn-primary btn-full" id="signupBtn">
+          <span class="btn-text">Create Account</span>
+          <span class="btn-loader" style="display:none">●●●</span>
+        </button>
+        <p class="form-footer">Already have an account? <a href="/login">Sign in</a></p>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePassword(id, btn) {
+  const input = document.getElementById(id);
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = 'Hide';
+  } else {
+    input.type = 'password';
+    btn.textContent = 'Show';
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('successMsg').style.display = 'none';
+}
+
+function setLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  btn.querySelector('.btn-text').style.display = loading ? 'none' : 'inline';
+  btn.querySelector('.btn-loader').style.display = loading ? 'inline' : 'none';
+  btn.disabled = loading;
+}
+
+// Password strength
+const pwInput = document.getElementById('signupPassword');
+if (pwInput) {
+  pwInput.addEventListener('input', function() {
+    const v = this.value;
+    const el = document.getElementById('pwStrength');
+    let strength = 0;
+    if (v.length >= 6) strength++;
+    if (v.length >= 10) strength++;
+    if (/[A-Z]/.test(v)) strength++;
+    if (/[0-9]/.test(v)) strength++;
+    if (/[^a-zA-Z0-9]/.test(v)) strength++;
+    const labels = ['', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
+    const classes = ['', 'pw-weak', 'pw-fair', 'pw-good', 'pw-strong', 'pw-vstrong'];
+    el.textContent = v ? labels[strength] : '';
+    el.className = 'password-strength ' + (v ? classes[strength] : '');
+  });
+}
+
+// Login form
+const loginForm = document.getElementById('loginForm');
+if (loginForm) {
+  loginForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    setLoading('loginBtn', true);
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: document.getElementById('loginEmail').value,
+        password: document.getElementById('loginPassword').value
+      })
+    });
+    const data = await res.json();
+    setLoading('loginBtn', false);
+    if (data.success) {
+      window.location.href = data.redirect;
+    } else {
+      showError(data.error);
+    }
+  });
+}
+
+// Signup form
+const signupForm = document.getElementById('signupForm');
+if (signupForm) {
+  signupForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    setLoading('signupBtn', true);
+    const res = await fetch('/api/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: document.getElementById('signupName').value,
+        email: document.getElementById('signupEmail').value,
+        password: document.getElementById('signupPassword').value
+      })
+    });
+    const data = await res.json();
+    setLoading('signupBtn', false);
+    if (data.success) {
+      window.location.href = data.redirect;
+    } else {
+      showError(data.error);
+    }
+  });
+}
+</script>
+{% endblock %}

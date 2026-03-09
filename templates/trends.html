@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Fashion Trends – StyleSense{% endblock %}
+{% block body %}
+
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">✦ StyleSense</div>
+    <nav class="sidebar-nav">
+      <a href="/dashboard" class="nav-item"><span class="nav-icon">⬡</span><span>Dashboard</span></a>
+      <a href="/recommend" class="nav-item"><span class="nav-icon">✦</span><span>Get Outfit</span></a>
+      <a href="/trends" class="nav-item active"><span class="nav-icon">◈</span><span>Trends</span></a>
+      <a href="/profile" class="nav-item"><span class="nav-icon">◎</span><span>Profile</span></a>
+    </nav>
+    <a href="/logout" class="sidebar-logout">↩ Logout</a>
+  </aside>
+
+  <main class="app-main">
+    <header class="app-header">
+      <div>
+        <h1>Fashion <em>Trends</em> ◈</h1>
+        <p>What's dominating the style scene right now</p>
+      </div>
+      <div class="season-badge">Spring / Summer 2024</div>
+    </header>
+
+    <!-- KEY COLORS -->
+    <div class="section-title">Season's Key Colors</div>
+    <div id="keyColors" class="key-colors"></div>
+
+    <!-- KEY FABRICS -->
+    <div class="section-title" style="margin-top:2rem">Key Fabrics & Textures</div>
+    <div id="keyFabrics" class="key-fabrics"></div>
+
+    <!-- TRENDS GRID -->
+    <div class="section-title" style="margin-top:2rem">Top Trending Aesthetics</div>
+    <div id="trendsGrid" class="trends-grid">
+      <div class="trends-loading">Loading trends●●●</div>
+    </div>
+  </main>
+</div>
+
+<script>
+const COLOR_MAP = {
+  'Peach Fuzz': '#FFBE98', 'Warm Coral': '#FF7F7F', 'Sage Green': '#87A878',
+  'Butter Yellow': '#FFF07C', 'Electric Blue': '#0047FF',
+};
+
+async function loadTrends() {
+  const res = await fetch('/api/trends');
+  const data = await res.json();
+  if (!data.success) return;
+
+  const d = data.data;
+
+  // Colors
+  const colorsEl = document.getElementById('keyColors');
+  colorsEl.innerHTML = d.key_colors.map(c => `
+    <div class="kc-item">
+      <div class="kc-swatch" style="background:${COLOR_MAP[c] || '#CCC'}"></div>
+      <span>${c}</span>
+    </div>
+  `).join('');
+
+  // Fabrics
+  const fabricsEl = document.getElementById('keyFabrics');
+  fabricsEl.innerHTML = d.key_fabrics.map(f => `
+    <div class="kf-item">◇ ${f}</div>
+  `).join('');
+
+  // Trends
+  const trendsEl = document.getElementById('trendsGrid');
+  trendsEl.innerHTML = d.trends.map((t, i) => `
+    <div class="trend-card" style="animation-delay:${i * 0.08}s">
+      <div class="tc-rank">${String(i + 1).padStart(2, '0')}</div>
+      <div class="tc-content">
+        <div class="tc-name">${t.trend}</div>
+        <div class="tc-desc">${t.description}</div>
+        <div class="tc-meta">
+          <span class="tc-season">${t.season}</span>
+          <div class="tc-bar-wrap">
+            <div class="tc-bar"><div style="width:${t.popularity}%"></div></div>
+            <span class="tc-pct">${t.popularity}%</span>
+          </div>
+        </div>
+      </div>
+      <a href="/recommend" class="tc-btn">Try This Style →</a>
+    </div>
+  `).join('');
+}
+
+loadTrends();
+</script>
+{% endblock %}

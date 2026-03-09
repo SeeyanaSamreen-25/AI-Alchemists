@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Profile – StyleSense{% endblock %}
+{% block body %}
+
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">✦ StyleSense</div>
+    <nav class="sidebar-nav">
+      <a href="/dashboard" class="nav-item"><span class="nav-icon">⬡</span><span>Dashboard</span></a>
+      <a href="/recommend" class="nav-item"><span class="nav-icon">✦</span><span>Get Outfit</span></a>
+      <a href="/trends" class="nav-item"><span class="nav-icon">◈</span><span>Trends</span></a>
+      <a href="/profile" class="nav-item active"><span class="nav-icon">◎</span><span>Profile</span></a>
+    </nav>
+    <a href="/logout" class="sidebar-logout">↩ Logout</a>
+  </aside>
+
+  <main class="app-main">
+    <header class="app-header">
+      <div>
+        <h1>Your <em>Profile</em> ◎</h1>
+        <p>Manage your style preferences and history</p>
+      </div>
+    </header>
+
+    <div class="profile-layout">
+      <!-- LEFT: Edit Profile -->
+      <div class="profile-left">
+        <div class="profile-card">
+          <div class="profile-avatar">{{ user.name[0].upper() }}</div>
+          <h3>{{ user.name }}</h3>
+          <p class="profile-email">{{ user.email }}</p>
+          <p class="profile-since">Member since {{ user.created_at[:10] }}</p>
+        </div>
+
+        <div class="edit-card">
+          <h4>Edit Profile</h4>
+          <div id="profileMsg" class="success-banner" style="display:none"></div>
+          <div id="profileErr" class="error-banner" style="display:none"></div>
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="editName" value="{{ user.name }}" />
+          </div>
+          <div class="form-group">
+            <label>Preferred Style</label>
+            <select id="prefStyle">
+              <option value="casual">Casual</option>
+              <option value="formal">Formal</option>
+              <option value="evening">Evening</option>
+              <option value="streetwear">Streetwear</option>
+              <option value="bohemian">Bohemian</option>
+            </select>
+          </div>
+          <button class="btn-primary btn-full" onclick="updateProfile()">Save Changes</button>
+        </div>
+      </div>
+
+      <!-- RIGHT: History & Saved -->
+      <div class="profile-right">
+        <!-- Tabs -->
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('history', this)">Recommendation History</button>
+          <button class="tab-btn" onclick="switchTab('saved', this)">Saved Outfits</button>
+        </div>
+
+        <!-- History Tab -->
+        <div id="tab-history" class="tab-content active">
+          {% if history %}
+            {% for r in history %}
+            <div class="history-item">
+              <div class="hi-cat">{{ r.category.capitalize() }}</div>
+              <div class="hi-prompt">{{ r.prompt[:100] }}{% if r.prompt|length > 100 %}…{% endif %}</div>
+              <div class="hi-date">{{ r.created_at[:16] }}</div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="empty-state">
+              <div class="es-icon">✦</div>
+              <p>No recommendation history yet.</p>
+              <a href="/recommend" class="btn-primary">Get Your First Outfit</a>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Saved Tab -->
+        <div id="tab-saved" class="tab-content" style="display:none">
+          {% if saved %}
+            {% for s in saved %}
+            <div class="saved-item">
+              <div class="si-title">{{ s.title }}</div>
+              {% if s.description %}<div class="si-desc">{{ s.description }}</div>{% endif %}
+              <div class="si-date">Saved {{ s.created_at[:10] }}</div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="empty-state">
+              <div class="es-icon">♡</div>
+              <p>No saved outfits yet.</p>
+              <a href="/recommend" class="btn-primary">Generate an Outfit</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).style.display = 'block';
+  btn.classList.add('active');
+}
+
+async function updateProfile() {
+  const name = document.getElementById('editName').value.trim();
+  const prefStyle = document.getElementById('prefStyle').value;
+  if (!name) { document.getElementById('profileErr').textContent = 'Name cannot be empty'; document.getElementById('profileErr').style.display='block'; return; }
+
+  const res = await fetch('/api/update-profile', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, style_profile: { preferred_style: prefStyle } })
+  });
+  const data = await res.json();
+  const msgEl = document.getElementById('profileMsg');
+  const errEl = document.getElementById('profileErr');
+  if (data.success) {
+    msgEl.textContent = '✓ Profile updated!';
+    msgEl.style.display = 'block';
+    errEl.style.display = 'none';
+    setTimeout(() => { msgEl.style.display = 'none'; }, 3000);
+  } else {
+    errEl.textContent = data.error;
+    errEl.style.display = 'block';
+    msgEl.style.display = 'none';
+  }
+}
+</script>
+{% endblock %}

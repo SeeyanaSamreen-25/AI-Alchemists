@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% block title %}AI Outfit Builder – StyleSense{% endblock %}
+{% block body %}
+
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">✦ StyleSense</div>
+    <nav class="sidebar-nav">
+      <a href="/dashboard" class="nav-item"><span class="nav-icon">⬡</span><span>Dashboard</span></a>
+      <a href="/recommend" class="nav-item active"><span class="nav-icon">✦</span><span>Get Outfit</span></a>
+      <a href="/trends" class="nav-item"><span class="nav-icon">◈</span><span>Trends</span></a>
+      <a href="/profile" class="nav-item"><span class="nav-icon">◎</span><span>Profile</span></a>
+    </nav>
+    <a href="/logout" class="sidebar-logout">↩ Logout</a>
+  </aside>
+
+  <main class="app-main">
+    <header class="app-header">
+      <div>
+        <h1>AI <em>Outfit Builder</em> ✦</h1>
+        <p>Describe your occasion and let AI curate the perfect look</p>
+      </div>
+    </header>
+
+    <div class="rec-layout">
+      <!-- FORM -->
+      <div class="rec-form-wrap">
+        <div class="rec-form-card">
+          <h3>Tell Me About Your Look</h3>
+
+          <div class="form-group">
+            <label>Describe your occasion or style</label>
+            <textarea id="recPrompt" placeholder="e.g. I need an outfit for a rooftop dinner party — elegant but not too formal. I want to feel confident and stylish..." rows="4"></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Style Category</label>
+              <select id="styleType">
+                <option value="casual">Casual</option>
+                <option value="formal">Formal / Work</option>
+                <option value="evening">Evening / Party</option>
+                <option value="streetwear">Streetwear</option>
+                <option value="bohemian">Bohemian</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Occasion</label>
+              <select id="occasion">
+                <option value="">Select occasion</option>
+                <option>Date Night</option>
+                <option>Business Meeting</option>
+                <option>Casual Outing</option>
+                <option>Wedding Guest</option>
+                <option>Job Interview</option>
+                <option>Festival</option>
+                <option>Dinner Party</option>
+                <option>Gym / Active</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Quick prompts -->
+          <div class="quick-prompts">
+            <span class="qp-label">Quick:</span>
+            <button class="qp-btn" onclick="fillPrompt('office look for a presentation')">Office Presentation</button>
+            <button class="qp-btn" onclick="fillPrompt('casual weekend brunch with friends')">Weekend Brunch</button>
+            <button class="qp-btn" onclick="fillPrompt('evening cocktail party outfit')">Cocktail Party</button>
+            <button class="qp-btn" onclick="fillPrompt('streetwear look for a concert')">Concert Outfit</button>
+          </div>
+
+          <button class="btn-primary btn-full" id="getOutfitBtn" onclick="getRecommendation()">
+            <span class="btn-text">✦ Generate Outfit</span>
+            <span class="btn-loader" style="display:none">Crafting your look●●●</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- RESULT -->
+      <div class="rec-result-wrap">
+        <div id="resultPlaceholder" class="result-placeholder">
+          <div class="rp-icon">✦</div>
+          <p>Your AI-curated outfit will appear here</p>
+          <small>Fill in the form and click Generate Outfit</small>
+        </div>
+
+        <div id="resultCard" class="result-card" style="display:none">
+          <div class="rc-header">
+            <div>
+              <div class="rc-badge" id="rcCategory"></div>
+              <div class="rc-title" id="rcTitle"></div>
+            </div>
+            <div class="rc-score" id="rcScore"></div>
+          </div>
+
+          <div class="rc-ai-note" id="rcNote"></div>
+
+          <div class="rc-section">
+            <div class="rc-section-title">Outfit Items</div>
+            <div class="rc-items" id="rcItems"></div>
+          </div>
+
+          <div class="rc-section">
+            <div class="rc-section-title">Color Palette</div>
+            <div class="rc-palette" id="rcPalette"></div>
+          </div>
+
+          <div class="rc-section">
+            <div class="rc-section-title">Styling Tips</div>
+            <ul class="rc-tips" id="rcTips"></ul>
+          </div>
+
+          <div class="rc-actions">
+            <button class="btn-primary" onclick="saveOutfit()">♡ Save Outfit</button>
+            <button class="btn-outline" onclick="getRecommendation()">↻ Regenerate</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Save Outfit Modal -->
+<div id="saveModal" class="modal-overlay" style="display:none" onclick="closeSaveModal(event)">
+  <div class="modal-card">
+    <h3>Save This Outfit</h3>
+    <div class="form-group">
+      <label>Outfit Name</label>
+      <input type="text" id="saveTitle" placeholder="e.g. Office Power Look" />
+    </div>
+    <div class="form-group">
+      <label>Notes (optional)</label>
+      <textarea id="saveDesc" rows="2" placeholder="Any notes about this outfit..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="confirmSave()">Save Outfit</button>
+      <button class="btn-ghost" onclick="document.getElementById('saveModal').style.display='none'">Cancel</button>
+    </div>
+    <div id="saveMsg" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<script>
+let lastRecommendation = null;
+
+function fillPrompt(text) {
+  document.getElementById('recPrompt').value = text;
+  document.getElementById('recPrompt').focus();
+}
+
+function setLoading(loading) {
+  const btn = document.getElementById('getOutfitBtn');
+  btn.querySelector('.btn-text').style.display = loading ? 'none' : 'inline';
+  btn.querySelector('.btn-loader').style.display = loading ? 'inline' : 'none';
+  btn.disabled = loading;
+}
+
+const COLOR_MAP = {
+  'White': '#F8F8F8', 'Black': '#1A1A1A', 'Navy': '#1B2A4A', 'Beige': '#E8DCC8',
+  'Camel': '#C19A6B', 'Ivory': '#FFFFF0', 'Charcoal': '#36454F', 'Gold': '#D4AF37',
+  'Silver': '#C0C0C0', 'Emerald': '#50C878', 'Sage Green': '#87A878', 'Champagne': '#F7E7CE',
+  'Terracotta': '#CC6348', 'Cream': '#FFFDD0', 'Rust': '#B7410E', 'Mustard': '#FFDB58',
+  'Teal': '#008080', 'Sand': '#C2B280', 'Copper': '#B87333', 'Burgundy': '#800020',
+  'Olive': '#808000', 'Grey': '#808080', 'Indigo': '#4B0082', 'Coral': '#FF7F50',
+  'Peach': '#FFCBA4', 'Mint': '#98FF98', 'Lavender': '#E6E6FA', 'Light Blue': '#ADD8E6',
+  'Off-white': '#FAF9F6', 'Caramel': '#C68642', 'Tan': '#D2B48C', 'Red': '#DC143C',
+  'Denim Blue': '#1560BD', 'Brown': '#8B4513',
+};
+
+async function getRecommendation() {
+  const prompt = document.getElementById('recPrompt').value.trim();
+  if (!prompt) {
+    alert('Please describe what you\'re looking for!');
+    return;
+  }
+  setLoading(true);
+  document.getElementById('resultPlaceholder').style.display = 'none';
+  document.getElementById('resultCard').style.display = 'none';
+
+  try {
+    const res = await fetch('/api/recommend', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt,
+        style_type: document.getElementById('styleType').value,
+        occasion: document.getElementById('occasion').value
+      })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      lastRecommendation = data.recommendation;
+      renderResult(data.recommendation);
+    } else {
+      alert(data.error || 'Something went wrong. Please try again.');
+      document.getElementById('resultPlaceholder').style.display = 'flex';
+    }
+  } catch (err) {
+    alert('Network error. Please try again.');
+    document.getElementById('resultPlaceholder').style.display = 'flex';
+  }
+  setLoading(false);
+}
+
+function renderResult(r) {
+  document.getElementById('rcCategory').textContent = r.style_category;
+  document.getElementById('rcTitle').textContent = r.outfit.name;
+  document.getElementById('rcScore').textContent = r.confidence_score + '% match';
+  document.getElementById('rcNote').textContent = r.ai_note;
+
+  // Items
+  const itemsEl = document.getElementById('rcItems');
+  itemsEl.innerHTML = r.outfit.items.map(item =>
+    `<div class="rc-item"><span class="rc-item-dot">◈</span>${item}</div>`
+  ).join('');
+
+  // Palette
+  const palEl = document.getElementById('rcPalette');
+  palEl.innerHTML = r.color_palette.map(color => {
+    const hex = COLOR_MAP[color] || '#CCCCCC';
+    return `<div class="pal-item"><div class="pal-swatch" style="background:${hex}"></div><span>${color}</span></div>`;
+  }).join('');
+
+  // Tips
+  const tipsEl = document.getElementById('rcTips');
+  tipsEl.innerHTML = r.styling_tips.map(t => `<li>${t}</li>`).join('');
+
+  document.getElementById('resultCard').style.display = 'block';
+  document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function saveOutfit() {
+  if (!lastRecommendation) return;
+  document.getElementById('saveTitle').value = lastRecommendation.outfit.name;
+  document.getElementById('saveModal').style.display = 'flex';
+}
+
+function closeSaveModal(e) {
+  if (e.target === document.getElementById('saveModal')) {
+    document.getElementById('saveModal').style.display = 'none';
+  }
+}
+
+async function confirmSave() {
+  const title = document.getElementById('saveTitle').value.trim();
+  if (!title) { alert('Please enter an outfit name'); return; }
+  const res = await fetch('/api/save-outfit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title,
+      description: document.getElementById('saveDesc').value,
+      tags: lastRecommendation ? [lastRecommendation.style_category] : []
+    })
+  });
+  const data = await res.json();
+  const msg = document.getElementById('saveMsg');
+  if (data.success) {
+    msg.innerHTML = '<span style="color:#4ade80">✓ Outfit saved successfully!</span>';
+    setTimeout(() => { document.getElementById('saveModal').style.display = 'none'; msg.innerHTML = ''; }, 1500);
+  } else {
+    msg.innerHTML = `<span style="color:#f87171">${data.error}</span>`;
+  }
+}
+</script>
+{% endblock %}
